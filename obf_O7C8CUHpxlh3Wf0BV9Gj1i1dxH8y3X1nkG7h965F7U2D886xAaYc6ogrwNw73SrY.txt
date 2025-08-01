@@ -1,0 +1,138 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+
+local rainParts = {}
+local maxParts = 50
+local radius = 6
+local clickDelay = 0.01
+
+local function moveMouseTo(x, y)
+    if syn and syn.mousemoveabs then
+        syn.mousemoveabs(math.floor(x), math.floor(y))
+    elseif mousemoveabs then
+        mousemoveabs(math.floor(x), math.floor(y))
+    end
+end
+
+local function clickMouse()
+    if syn and syn.mouse1click then
+        syn.mouse1click()
+    elseif mouse1press and mouse1release then
+        mouse1press()
+        task.wait(0.002)
+        mouse1release()
+    end
+end
+
+
+task.spawn(function()
+    while true do
+        task.wait(0.05)
+        local offset = Vector3.new(
+            math.random(-radius*100, radius*100)/100,
+            math.random(2, 6),
+            math.random(-radius*100, radius*100)/100
+        )
+
+        local part = Instance.new("Part")
+        part.Name = "InvisibleClickPart"
+        part.Size = Vector3.new(1,1,1)
+        part.Anchored = true
+        part.CanCollide = true 
+        part.Transparency = 1 -- ❗ GÖRÜNMEZ
+        part.Position = hrp.Position + offset
+        part.Parent = workspace
+
+        table.insert(rainParts, part)
+        if #rainParts > maxParts then
+            local old = table.remove(rainParts, 1)
+            if old then old:Destroy() end
+        end
+    end
+end)
+
+
+RunService.RenderStepped:Connect(function()
+    for _, part in ipairs(rainParts) do
+        if part and part.Parent then
+            local offset = Vector3.new(
+                math.random(-radius*100, radius*100)/100,
+                math.random(2, 6),
+                math.random(-radius*100, radius*100)/100
+            )
+            part.Position = hrp.Position + offset
+        end
+    end
+end)
+
+
+task.spawn(function()
+    while true do
+        for _, part in ipairs(rainParts) do
+            if part and part:IsDescendantOf(workspace) then
+                local screenPos, onScreen = camera:WorldToScreenPoint(part.Position)
+
+                if onScreen then
+                    local inset = GuiService:GetGuiInset()
+                    local x = screenPos.X
+                    local y = screenPos.Y + inset.Y
+
+                    moveMouseTo(x, y)
+                    clickMouse()
+                    task.wait(clickDelay)
+                end
+            end
+        end
+        task.wait(0.01)
+    end
+end)
+
+
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "SnOoByGui"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+
+    local label = Instance.new("TextLabel")
+    label.Name = "SnOoByLabel"
+    label.Size = UDim2.new(0, 200, 0, 50) -- Daha büyük
+    label.Position = UDim2.new(1, -700, 0, 400) -- Sağ üstten biraz daha içe ve aşağı
+    label.BackgroundTransparency = 1
+    label.Text = "SnOoBy"
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeTransparency = 0.6
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold -- Daha kalın font
+    label.Parent = gui
+
+    gui.Parent = player:WaitForChild("PlayerGui")
+end)
+
+
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "SnOoByGui"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+
+    local label = Instance.new("TextLabel")
+    label.Name = "SnOoByLabel"
+    label.Size = UDim2.new(0, 200, 0, 50) -- Daha büyük
+    label.Position = UDim2.new(1, -999, 0, 400) -- Sağ üstten biraz daha içe ve aşağı
+    label.BackgroundTransparency = 1
+    label.Text = "SnOoBy"
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextStrokeTransparency = 0.6
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold -- Daha kalın font
+    label.Parent = gui
+
+    gui.Parent = player:WaitForChild("PlayerGui")
+end)
